@@ -135,18 +135,27 @@
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 42px;
     z-index: 5;
-    padding: 10px 10px 4px;
+    padding: 10px 10px 8px;
     display: flex;
     flex-direction: column;
     gap: 5px;
-    overflow-y: auto;
+    overflow-y: scroll;
     overflow-x: hidden;
-    pointer-events: none;
+    pointer-events: all;
     scrollbar-width: thin;
     scrollbar-color: rgba(0,200,255,0.2) transparent;
+    -webkit-overflow-scrolling: touch;
   }
   #msg-overlay::-webkit-scrollbar { width: 3px; }
   #msg-overlay::-webkit-scrollbar-thumb { background: rgba(0,200,255,0.2); border-radius: 2px; }
+  #msg-overlay:empty::before {
+    content: "// no messages yet";
+    font-size: 10px;
+    color: rgba(0,200,255,0.18);
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin: auto;
+  }
 
   .msg-bubble {
     display: inline-flex;
