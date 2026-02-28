@@ -259,6 +259,159 @@
     text-shadow: 0 0 8px var(--neon-cyan);
   }
   #status.show { opacity: 1; }
+
+  /* ── Chat Panel ── */
+  #board-frame {
+    border-bottom: none !important;
+    border-radius: 0 !important;
+  }
+
+  #chat-panel {
+    width: 100%;
+    max-width: 1200px;
+    background: rgba(5,7,15,0.88);
+    border: 1px solid rgba(0,200,255,0.35);
+    border-top: 1px solid rgba(0,200,255,0.12);
+    border-radius: 0 0 10px 10px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 40px rgba(0,200,255,0.1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  #messages {
+    overflow-y: auto;
+    padding: 10px 14px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-height: 70px;
+    max-height: 130px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,200,255,0.25) transparent;
+  }
+  #messages::-webkit-scrollbar { width: 3px; }
+  #messages::-webkit-scrollbar-thumb { background: rgba(0,200,255,0.25); border-radius: 2px; }
+
+  .msg { display: flex; align-items: flex-start; gap: 8px; animation: msg-in 0.22s ease; }
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-body {
+    flex: 1;
+    background: rgba(0,200,255,0.04);
+    border: 1px solid rgba(0,200,255,0.13);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #C8F0FF;
+    word-break: break-word;
+  }
+  .msg-sender {
+    font-size: 9px;
+    color: var(--neon-cyan);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1px;
+    text-shadow: 0 0 6px var(--neon-cyan);
+  }
+  .msg-time {
+    font-size: 9px;
+    color: rgba(0,200,255,0.3);
+    margin-top: 2px;
+  }
+
+  .msg-delete {
+    background: transparent;
+    border: 1px solid rgba(255,45,120,0.2);
+    border-radius: 5px;
+    color: rgba(255,45,120,0.45);
+    cursor: pointer;
+    font-size: 10px;
+    padding: 3px 7px;
+    transition: all 0.12s;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .msg-delete:hover {
+    background: rgba(255,45,120,0.1);
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+    box-shadow: 0 0 8px rgba(255,45,120,0.3);
+  }
+
+  .msg-empty {
+    font-size: 10px;
+    color: rgba(0,200,255,0.22);
+    letter-spacing: 0.1em;
+    text-align: center;
+    padding: 14px 0;
+    text-transform: uppercase;
+  }
+
+  #chat-input-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-top: 1px solid rgba(0,200,255,0.1);
+  }
+
+  #chat-sender {
+    width: 100px;
+    flex-shrink: 0;
+    background: rgba(0,200,255,0.05);
+    border: 1px solid rgba(0,200,255,0.2);
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--neon-cyan);
+    outline: none;
+  }
+  #chat-sender::placeholder { color: rgba(0,200,255,0.22); }
+  #chat-sender:focus { border-color: var(--neon-cyan); box-shadow: 0 0 6px rgba(0,255,234,0.18); }
+
+  #chat-text {
+    flex: 1;
+    background: rgba(0,200,255,0.05);
+    border: 1px solid rgba(0,200,255,0.2);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: #E8F4FF;
+    outline: none;
+  }
+  #chat-text::placeholder { color: rgba(200,220,255,0.18); }
+  #chat-text:focus { border-color: var(--neon-blue); box-shadow: 0 0 6px rgba(0,200,255,0.18); }
+
+  #chat-send {
+    height: 30px;
+    padding: 0 14px;
+    background: rgba(0,200,255,0.1);
+    border: 1px solid rgba(0,200,255,0.4);
+    border-radius: 6px;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--neon-blue);
+    cursor: pointer;
+    transition: all 0.12s;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  #chat-send:hover {
+    background: rgba(0,200,255,0.2);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 12px rgba(0,200,255,0.35);
+    color: #fff;
+  }
 </style>
 </head>
 <body>
@@ -302,6 +455,17 @@
   <div id="board-frame">
     <div id="canvas-wrap">
       <canvas id="board"></canvas>
+    </div>
+  </div>
+
+  <div id="chat-panel">
+    <div id="messages">
+      <div class="msg-empty" id="msg-empty">// no messages yet</div>
+    </div>
+    <div id="chat-input-bar">
+      <input id="chat-sender" type="text" placeholder="name / agent" maxlength="24" spellcheck="false" />
+      <input id="chat-text"   type="text" placeholder="send a message to the board..." maxlength="280" spellcheck="false" />
+      <button id="chat-send">SEND ▶</button>
     </div>
   </div>
 </div>
@@ -497,10 +661,12 @@
       const app = initializeApp(FIREBASE_CONFIG);
       const dbInst = getDatabase(app);
       strokesRef = ref(dbInst, `rooms/${ROOM}/strokes`);
+      window._fbDb = dbInst;
       firebaseReady = true;
       dot.classList.add('connected');
       dot.title = 'Realtime sync active';
       showStatus('SYNC ONLINE');
+      initChat(dbInst, ref, push, onChildAdded, remove);
 
       onChildAdded(strokesRef, snap => {
         const seg = snap.val();
@@ -552,6 +718,98 @@
     setSize(s) { size=s; },
     getSize() { return { width:canvas.width, height:canvas.height }; },
     toDataURL() { return canvas.toDataURL('image/png'); }
+  };
+
+
+  // ── CHAT ──────────────────────────────────────────────────────────────────
+  let messagesRef = null;
+
+  function initChat(dbInst, refFn, pushFn, onChildAddedFn, removeFn) {
+    messagesRef = refFn(dbInst, `rooms/${ROOM}/messages`);
+
+    onChildAddedFn(messagesRef, snap => {
+      const msg = snap.val();
+      if (!msg) return;
+      renderMessage(snap.key, msg);
+    });
+  }
+
+  function renderMessage(key, msg) {
+    const empty = document.getElementById('msg-empty');
+    if (empty) empty.remove();
+
+    const el = document.createElement('div');
+    el.className = 'msg';
+    el.dataset.key = key;
+
+    const time = new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    el.innerHTML = `
+      <div class="msg-body">
+        <div class="msg-sender">${escHtml(msg.sender || 'anonymous')}</div>
+        <div class="msg-text">${escHtml(msg.text)}</div>
+        <div class="msg-time">${time}</div>
+      </div>
+      <button class="msg-delete" title="Delete message">✕</button>
+    `;
+
+    el.querySelector('.msg-delete').addEventListener('click', () => deleteMessage(key, el));
+
+    const box = document.getElementById('messages');
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function deleteMessage(key, el) {
+    if (!messagesRef) return;
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(m => {
+      const { ref: fbRef, remove: fbRemove } = m;
+      // need db instance — store it on window for reuse
+      if (window._fbDb) {
+        fbRemove(fbRef(window._fbDb, `rooms/${ROOM}/messages/${key}`));
+        el.remove();
+        if (!document.querySelector('.msg')) {
+          document.getElementById('messages').innerHTML = '<div class="msg-empty" id="msg-empty">// no messages yet</div>';
+        }
+      }
+    });
+  }
+
+  function sendMessage() {
+    const sender = document.getElementById('chat-sender').value.trim() || 'anonymous';
+    const text   = document.getElementById('chat-text').value.trim();
+    if (!text) return;
+
+    const msg = { sender, text, ts: Date.now() };
+
+    if (messagesRef && window._fbDb) {
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(m => {
+        m.push(messagesRef, msg);
+      });
+    } else {
+      // local fallback if Firebase not connected
+      renderMessage('local-' + Date.now(), msg);
+    }
+
+    document.getElementById('chat-text').value = '';
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  document.getElementById('chat-send').addEventListener('click', sendMessage);
+  document.getElementById('chat-text').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+  });
+
+  // Expose to agent API
+  window.whiteboard.sendMessage = function(text, sender='agent') {
+    const msg = { sender, text, ts: Date.now() };
+    if (messagesRef && window._fbDb) {
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(m => m.push(messagesRef, msg));
+    } else {
+      renderMessage('local-' + Date.now(), msg);
+    }
   };
 
   showStatus('SYSTEM READY');
