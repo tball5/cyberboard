@@ -459,7 +459,7 @@
     const text   = document.getElementById('chat-text').value.trim();
     if (!text) return;
 
-    const msg = { sender, text, ts: Date.now() };
+    const msg = { sender, text, ts: Date.now(), uid: window._fbUid || null };
     document.getElementById('chat-text').value = '';
 
     if (messagesRef && window._fbDb) {
@@ -492,62 +492,72 @@
       const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
       const { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, query, orderByChild, limitToFirst, get } =
         await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+      const { getAuth, signInAnonymously, onAuthStateChanged } =
+        await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
 
       const app = initializeApp(FIREBASE_CONFIG);
       const db = getDatabase(app);
+      const auth = getAuth(app);
       window._fbDb = db;
       messagesRef = ref(db, `rooms/${ROOM}/messages`);
 
-      dot.classList.add('connected');
-      dot.title = 'Realtime sync active';
-      showStatus('SYNC ONLINE');
-
-      // Listen for new messages
-      onChildAdded(messagesRef, snap => {
-        const msg = snap.val();
-        if (!msg) return;
-
-        // Avoid duplicate rendering
-        if (msgKeys.includes(snap.key)) return;
-
-        msgKeys.push(snap.key);
-        renderMessage(snap.key, msg);
-        updateCount();
-
-        // Enforce cap — delete oldest if over limit
-        if (msgKeys.length > MSG_CAP) {
-          const oldestKey = msgKeys[0];
-          const oldestEl = document.querySelector(`.msg-bubble[data-key="${oldestKey}"]`);
-          if (oldestEl) {
-            oldestEl.style.transition = 'opacity 0.2s';
-            oldestEl.style.opacity = '0';
-            setTimeout(() => oldestEl.remove(), 200);
-          }
-          msgKeys.shift();
-          updateCount();
-          // Delete from Firebase
-          remove(ref(db, `rooms/${ROOM}/messages/${oldestKey}`));
+      // ── Anon auth ──
+      onAuthStateChanged(auth, user => {
+        if (user) {
+          window._fbUid = user.uid;
+          dot.classList.add('connected');
+          dot.title = `Signed in anonymously · uid: ${user.uid.slice(0,8)}…`;
+          showStatus('SYNC ONLINE');
+          startListening(db, ref, push, onChildAdded, onChildRemoved, remove);
         }
       });
-
-      // Listen for deletions from other clients
-      onChildRemoved(messagesRef, snap => {
-        const key = snap.key;
-        const el = document.querySelector(`.msg-bubble[data-key="${key}"]`);
-        if (el) {
-          el.style.transition = 'opacity 0.15s';
-          el.style.opacity = '0';
-          setTimeout(() => el.remove(), 160);
-        }
-        msgKeys = msgKeys.filter(k => k !== key);
-        updateCount();
-      });
+      await signInAnonymously(auth);
 
     } catch (err) {
       document.getElementById('sync-dot').classList.add('error');
       showStatus('SYNC ERROR');
       console.warn('Firebase error:', err);
     }
+  }
+
+  function startListening(db, ref, push, onChildAdded, onChildRemoved, remove) {
+    // Listen for new messages
+    onChildAdded(messagesRef, snap => {
+      const msg = snap.val();
+      if (!msg) return;
+      if (msgKeys.includes(snap.key)) return;
+
+      msgKeys.push(snap.key);
+      renderMessage(snap.key, msg);
+      updateCount();
+
+      // Enforce cap — delete oldest if over limit
+      if (msgKeys.length > MSG_CAP) {
+        const oldestKey = msgKeys[0];
+        const oldestEl = document.querySelector(`.msg-bubble[data-key="${oldestKey}"]`);
+        if (oldestEl) {
+          oldestEl.style.transition = 'opacity 0.2s';
+          oldestEl.style.opacity = '0';
+          setTimeout(() => oldestEl.remove(), 200);
+        }
+        msgKeys.shift();
+        updateCount();
+        remove(ref(db, `rooms/${ROOM}/messages/${oldestKey}`));
+      }
+    });
+
+    // Listen for deletions from other clients
+    onChildRemoved(messagesRef, snap => {
+      const key = snap.key;
+      const el = document.querySelector(`.msg-bubble[data-key="${key}"]`);
+      if (el) {
+        el.style.transition = 'opacity 0.15s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 160);
+      }
+      msgKeys = msgKeys.filter(k => k !== key);
+      updateCount();
+    });
   }
 
   initFirebase();
